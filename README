@@ -1,0 +1,23 @@
+A sublime 2 plugin to keep your project environment in sync with a remote host.
+
+When investigating an option to use sublime for editing Puppet code that needs
+to live on a remote server I wasn't satisfied with the performance of the SFTP
+plugin: we have a big code base with many, many files and I basically just
+wanted to trigger rsync when saving.
+
+So this plugin currently doesn't do much more than calling rsync for you when saving a file.
+
+In your project's file you can configure it like this::
+
+    {
+        "folders":
+        [
+      {
+         "path": "."
+     }
+     ],
+     "settings": {
+        "rsync-source": "/local/path/to/my/code/",
+        "rsync-target": "host:/remote/path/to/my/code"
+        }
+    }
