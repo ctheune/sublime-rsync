@@ -14,7 +14,7 @@ class SyncViewThread(threading.Thread):
     def run(self):
         try:
             subprocess.check_call(
-                'rsync -avz --exclude ".hg" {0} {1}'.format(
+                'rsync -avz --delete --exclude ".hg" {0} {1}'.format(
                     self.source, self.target), shell=True)
         except Exception, e:
             self.exception = e
