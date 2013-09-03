@@ -38,13 +38,13 @@ class Rsync(sublime_plugin.EventListener):
 
         def watch_thread():
             if t.isAlive():
-                view.set_status('rsync', 'Rsync: syncing ...')
+                view.set_status('rsync', 'Syncing')
                 sublime.set_timeout(watch_thread, 100)
                 return
             if t.success:
-                view.set_status('rsync', 'Rsync: up to date.')
+                view.set_status('rsync', '')
             else:
-                view.set_status('rsync', 'Rsync: error.')
+                view.set_status('rsync', 'Sync failed')
                 print t.exception
 
         watch_thread()
