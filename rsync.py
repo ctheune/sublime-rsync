@@ -1,5 +1,6 @@
 import sublime, sublime_plugin
 import subprocess
+import threading
 import StringIO
 
 class SyncViewThread(threading.Thread):
@@ -14,7 +15,7 @@ class SyncViewThread(threading.Thread):
     def run(self):
         try:
             subprocess.check_call(
-                'rsync -avz --delete --exclude ".hg" {0} {1}'.format(
+                'rsync -avz --delete  {0} {1}'.format(
                     self.source, self.target), shell=True)
         except Exception, e:
             self.exception = e
@@ -24,7 +25,6 @@ class SyncViewThread(threading.Thread):
 
 
 class Rsync(sublime_plugin.EventListener):
-
 
     def on_post_save(self, view):
         settings = view.settings()
