@@ -1,13 +1,14 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 import subprocess
 import threading
-import StringIO
+
 
 class SyncViewThread(threading.Thread):
 
-    def __init__(self, source, target):
-        self.source = source
-        self.target = target
+    def __init__(self, sync):
+        self.source = sync['source']
+        self.target = sync['target']
         self.success = None
         self.exception = None
         super(SyncViewThread, self).__init__()
@@ -17,7 +18,7 @@ class SyncViewThread(threading.Thread):
             subprocess.check_call(
                 'rsync -avz --delete  {0} {1}'.format(
                     self.source, self.target), shell=True)
-        except Exception, e:
+        except Exception as e:
             self.exception = e
             self.success = False
         else:
@@ -27,31 +28,40 @@ class SyncViewThread(threading.Thread):
 class Rsync(sublime_plugin.EventListener):
 
     def on_post_save(self, view):
-        settings = view.settings()
-        if not settings.has('rsync-target'):
-            view.set_status('rsync', '')
+        project = view.window().project_data()
+        if project is None:
             return
+        threads = []
+        for sync in project.get('rsync', []):
+            t = SyncViewThread(sync)
+            t.start()
+            threads.append(t)
 
-        t = SyncViewThread(settings.get('rsync-source'),
-                           settings.get('rsync-target'))
-        t.start()
+        def watch_threads():
+            alive = done = errors = 0
+            for t in threads[:]:
+                if t.isAlive():
+                    alive += 1
+                elif t.success:
+                    done += 1
+                else:
+                    print(t.exception)
+                    threads.remove(t)
+                    errors += 1
 
-        def watch_thread():
-            if t.isAlive():
-                view.set_status('rsync', 'Syncing')
-                sublime.set_timeout(watch_thread, 100)
-                return
-            if t.success:
-                view.set_status('rsync', '')
+            if alive:
+                view.set_status(
+                    'rsync',
+                    'Syncing (done={}, running={}, failed={})'.format(
+                        done, alive, errors))
+                sublime.set_timeout(watch_threads, 100)
+            elif errors:
+                view.set_status('rsync', 'Sync finished with errors.')
             else:
-                view.set_status('rsync', 'Sync failed')
-                print t.exception
+                view.set_status('rsync', 'Sync finished - success')
 
-        watch_thread()
+        watch_threads()
 
-    # def
 # onsave:
-#- check whether project has an rsync remote -> update remote, signal "in progress" and "done" in status bar
 #- use project-specific configuration variables:
-#    - where to sync to
 #    - exclude lists (provide some defaults, '.svn', '.git', '.hg' ...)
