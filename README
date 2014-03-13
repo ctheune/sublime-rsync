@@ -18,7 +18,8 @@ In your project's file you can configure it like this::
      ],
      "rsync": [
         {"source": "/local/path/to/my/code/",
-         "target": "host:/remote/path/to/my/code"}
+         "target": "host:/remote/path/to/my/code",
+         "args": "--exclude='asdf'"},
         {"source": "/local/path/to/my/code/",
          "target": "host2:/remote/path/to/my/code"}
      ]

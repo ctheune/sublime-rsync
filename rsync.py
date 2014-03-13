@@ -9,6 +9,7 @@ class SyncViewThread(threading.Thread):
     def __init__(self, sync):
         self.source = sync['source']
         self.target = sync['target']
+        self.args = sync.get('args', '')
         self.success = None
         self.exception = None
         super(SyncViewThread, self).__init__()
@@ -16,8 +17,8 @@ class SyncViewThread(threading.Thread):
     def run(self):
         try:
             subprocess.check_call(
-                'rsync -avz --delete  {0} {1}'.format(
-                    self.source, self.target), shell=True)
+                'rsync -avz --delete {0} {1} {2}'.format(
+                    self.args, self.source, self.target), shell=True)
         except Exception as e:
             self.exception = e
             self.success = False
@@ -32,7 +33,10 @@ class Rsync(sublime_plugin.EventListener):
         if project is None:
             return
         threads = []
-        for sync in project.get('rsync', []):
+        syncs = project.get('rsync', [])
+        if not syncs:
+            return
+        for sync in syncs:
             t = SyncViewThread(sync)
             t.start()
             threads.append(t)
