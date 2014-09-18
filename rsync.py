@@ -1,3 +1,4 @@
+import os.path
 import sublime
 import sublime_plugin
 import subprocess
@@ -6,8 +7,8 @@ import threading
 
 class SyncViewThread(threading.Thread):
 
-    def __init__(self, sync):
-        self.source = sync['source']
+    def __init__(self, sync, base_path):
+        self.source = os.path.join(base_path, sync['source'])
         self.target = sync['target']
         self.args = sync.get('args', '')
         self.command = 'rsync -avz --delete {0} {1} {2}'.format(
@@ -33,12 +34,13 @@ class Rsync(sublime_plugin.EventListener):
         project = view.window().project_data()
         if project is None:
             return
+        base_path = os.path.dirname(view.window().project_file_name())
         threads = []
         syncs = project.get('rsync', [])
         if not syncs:
             return
         for sync in syncs:
-            t = SyncViewThread(sync)
+            t = SyncViewThread(sync, base_path)
             t.start()
             threads.append(t)
 
