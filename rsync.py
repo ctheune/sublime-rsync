@@ -10,15 +10,16 @@ class SyncViewThread(threading.Thread):
         self.source = sync['source']
         self.target = sync['target']
         self.args = sync.get('args', '')
+        self.command = 'rsync -avz --delete {0} {1} {2}'.format(
+            self.args, self.source, self.target)
+        print("Syncing via:", self.command)
         self.success = None
         self.exception = None
         super(SyncViewThread, self).__init__()
 
     def run(self):
         try:
-            subprocess.check_call(
-                'rsync -avz --delete {0} {1} {2}'.format(
-                    self.args, self.source, self.target), shell=True)
+            subprocess.check_call(self.command, shell=True)
         except Exception as e:
             self.exception = e
             self.success = False
