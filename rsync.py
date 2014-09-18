@@ -67,5 +67,5 @@ class Rsync(sublime_plugin.EventListener):
         watch_threads()
 
 # onsave:
-#- use project-specific configuration variables:
+#  - use project-specific configuration variables:
 #    - exclude lists (provide some defaults, '.svn', '.git', '.hg' ...)
